@@ -10,20 +10,21 @@ CORS(app)
 classifier = None
 nlp = None
 MODEL_PATH = "distilbert-base-uncased-finetuned-sst-2-english"
+
 def load_models():
     global classifier, nlp
     if classifier is None:
-        print("Loading DistilBERT (lazy)...") # <--- ADDED THIS
+        print("Loading DistilBERT (lazy)...")
         classifier = pipeline("text-classification", model=MODEL_PATH, top_k=None)
-        print("DistilBERT loaded successfully.") # <--- ADDED THIS
+        print("DistilBERT loaded successfully.")
     if nlp is None:
-        print("Loading spaCy (lazy)...") # <--- ADDED THIS
+        print("Loading spaCy (lazy)...")
         try:
             nlp = spacy.load("en_core_web_sm")
         except OSError:
             os.system("python -m spacy download en_core_web_sm")
             nlp = spacy.load("en_core_web_sm")
-        print("spaCy loaded successfully.") # <--- ADDED THIS
+        print("spaCy loaded successfully.")
 
 @app.route('/')
 def home():
@@ -45,14 +46,18 @@ def predict():
         results = classifier(text[:512])[0]
         best_result = max(results, key=lambda x: x['score'])
         
-                raw_label = best_result['label']
+        # FIXED INDENTATION HERE (8 spaces)
+        raw_label = best_result['label']
         if raw_label == 'NEGATIVE':
             prediction = 'FAKE'
         elif raw_label == 'POSITIVE':
             prediction = 'REAL'
+        else:
+            prediction = raw_label
             
         confidence = best_result['score']
     except Exception as e:
+        print(f"Prediction error: {e}")
         prediction = "UNKNOWN"
         confidence = 0.0
 
@@ -60,7 +65,7 @@ def predict():
     doc = nlp(text[:1000])
     entities = [{"label": ent.label_, "value": ent.text} for ent in doc.ents][:6]
 
-    # 3. Mock SHAP 
+    # 3. Mock SHAP (Lazy fallback)
     shap_words = []
     words = text.split()[:5]
     for i, w in enumerate(words):
