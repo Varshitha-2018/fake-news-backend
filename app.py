@@ -32,7 +32,6 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Load models ONLY when a prediction is requested
     load_models()
     
     data = request.json
@@ -41,12 +40,10 @@ def predict():
     if not text:
         return jsonify({"error": "No text provided"}), 400
 
-    # 1. ML Prediction
     try:
         results = classifier(text[:512])[0]
         best_result = max(results, key=lambda x: x['score'])
         
-        # FIXED INDENTATION HERE (8 spaces)
         raw_label = best_result['label']
         if raw_label == 'NEGATIVE':
             prediction = 'FAKE'
@@ -61,11 +58,9 @@ def predict():
         prediction = "UNKNOWN"
         confidence = 0.0
 
-    # 2. NER (Entities)
     doc = nlp(text[:1000])
     entities = [{"label": ent.label_, "value": ent.text} for ent in doc.ents][:6]
 
-    # 3. Mock SHAP (Lazy fallback)
     shap_words = []
     words = text.split()[:5]
     for i, w in enumerate(words):
