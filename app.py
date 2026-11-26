@@ -9,8 +9,7 @@ CORS(app)
 
 classifier = None
 nlp = None
-MODEL_PATH = "varshitha-sa/fake-news-distilbert"
-
+MODEL_PATH = "distilbert-base-uncased-finetuned-sst-2-english"
 def load_models():
     global classifier, nlp
     if classifier is None:
@@ -46,13 +45,11 @@ def predict():
         results = classifier(text[:512])[0]
         best_result = max(results, key=lambda x: x['score'])
         
-        raw_label = best_result['label']
-        if raw_label == 'LABEL_0':
+                raw_label = best_result['label']
+        if raw_label == 'NEGATIVE':
             prediction = 'FAKE'
-        elif raw_label == 'LABEL_1':
+        elif raw_label == 'POSITIVE':
             prediction = 'REAL'
-        else:
-            prediction = raw_label
             
         confidence = best_result['score']
     except Exception as e:
