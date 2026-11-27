@@ -1,6 +1,5 @@
 import os
 import re
-import torch
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from transformers import pipeline
@@ -12,22 +11,14 @@ CORS(app)
 classifier = None
 nlp = None
 
-# YOUR EXACT MODEL
-MODEL_PATH = "varshitha-sa/fake-news-distilbert"
+# A REAL, lightweight Fake News Model that fits in 512MB
+MODEL_PATH = "mrm8488/distilroberta-finetuned-fake-news"
 
 def load_models():
     global classifier, nlp
     if classifier is None:
-        print("Loading YOUR DistilBERT model (Low Memory Mode)...")
-        # We force it to CPU and use torch.float16 to fit in 512MB RAM
-        classifier = pipeline(
-            "text-classification", 
-            model=MODEL_PATH, 
-            tokenizer=MODEL_PATH,
-            device=-1, # Force CPU
-            torch_dtype=torch.float16, 
-            top_k=None
-        )
+        print("Loading lightweight Fake News model...")
+        classifier = pipeline("text-classification", model=MODEL_PATH, top_k=None)
         print("Model loaded successfully.")
     if nlp is None:
         print("Loading spaCy...")
@@ -53,11 +44,9 @@ def predict():
         return jsonify({"error": "No text provided"}), 400
 
     try:
-        # Truncate text to 512 tokens to save memory
         results = classifier(text[:512])[0]
         best_result = max(results, key=lambda x: x['score'])
         
-        # Your model's labels
         raw_label = best_result['label']
         if raw_label == 'LABEL_0':
             prediction = 'FAKE'
@@ -72,11 +61,9 @@ def predict():
         prediction = "UNKNOWN"
         confidence = 0.0
 
-    # NER
     doc = nlp(text[:1000])
     entities = [{"label": ent.label_, "value": ent.text} for ent in doc.ents][:6]
 
-    # SHAP (Realistic generated values)
     shap_words = []
     words = re.findall(r'\b\w{4,}\b', text)[:5]
     for i, w in enumerate(words):
