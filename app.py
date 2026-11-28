@@ -11,7 +11,7 @@ CORS(app)
 classifier = None
 nlp = None
 
-# A REAL, lightweight Fake News Model that fits in 512MB
+# Lightweight real model that fits in 512MB
 MODEL_PATH = "mrm8488/distilroberta-finetuned-fake-news"
 
 def load_models():
